@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\ApiResource;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
@@ -28,6 +29,9 @@ class User
 
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Book::class)]
     private Collection $book;
+
+    #[ORM\Column(type: 'json')]
+    private array $roles = [];
 
     public function __construct()
     {
@@ -101,6 +105,18 @@ class User
                 $book->setUser(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getRoles(): array
+    {
+        return $this->roles;
+    }
+
+    public function setRoles(array $roles): self
+    {
+        $this->roles = $roles;
 
         return $this;
     }
