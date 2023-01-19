@@ -2,12 +2,19 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Core\Annotation\ApiFilter;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\BooleanFilter;
 use ApiPlatform\Metadata\ApiResource;
 use App\Repository\BookRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: BookRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    normalizationContext: ['groups' => ['read']],
+    denormalizationContext: ['groups' => ['write']],
+)]
+#[ApiFilter(BooleanFilter::class, properties: ['availability'])]
 class Book
 {
     #[ORM\Id]
@@ -16,14 +23,18 @@ class Book
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['read', 'write'])]
     private ?string $author = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['read', 'write'])]
     private ?string $title = null;
 
     #[ORM\Column]
-    private ?bool $availability = null;
+    #[Groups(['read', 'write'])]
+    private ?bool $availability = true;
 
+    #[Groups('write')]
     #[ORM\ManyToOne(inversedBy: 'book')]
     private ?User $user = null;
 
