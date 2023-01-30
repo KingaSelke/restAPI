@@ -5,15 +5,28 @@ namespace App\Entity;
 use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\BooleanFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Patch;
 use App\Repository\BookRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 
 #[ORM\Entity(repositoryClass: BookRepository::class)]
 #[ApiResource(
     normalizationContext: ['groups' => ['read']],
     denormalizationContext: ['groups' => ['write']],
+    security: "is_granted('ROLE_USER')",
 )]
+#[Get]
+#[Put(security: "is_granted('ROLE_ADMIN') or object.user == user")]
+#[GetCollection]
+#[Post(security: "is_granted('ROLE_ADMIN')")]
+#[Patch(security: "is_granted('ROLE_ADMIN')")]
+#[Delete(security: "is_granted('ROLE_ADMIN')")]
 #[ApiFilter(BooleanFilter::class, properties: ['availability'])]
 class Book
 {
@@ -36,7 +49,7 @@ class Book
 
     #[Groups('write')]
     #[ORM\ManyToOne(inversedBy: 'book')]
-    private ?User $user = null;
+    public ?User $user = null;
 
     public function getId(): ?int
     {
