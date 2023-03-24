@@ -5,15 +5,35 @@ namespace App\OpenApi;
 use ApiPlatform\OpenApi\Factory\OpenApiFactoryInterface;
 use ApiPlatform\OpenApi\OpenApi;
 use ApiPlatform\OpenApi\Model;
+use App\Entity\User;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final class JwtDecorator implements OpenApiFactoryInterface
 {
     public function __construct(
-        private OpenApiFactoryInterface $decorated
+        private OpenApiFactoryInterface $decorated,
+        private EntityManagerInterface $manager,
+        private UserPasswordHasherInterface $hasher
     ) {}
 
     public function __invoke(array $context = []): OpenApi
     {
+        try {
+            $user = new User();
+            $user->setName('name');
+            $user->setEmail('email@wp.pl');
+            $user->setRoles(['ROLE_ADMIN']);
+            $hashedPassword = $this->hasher->hashPassword(
+                $user,
+                'password'
+            );
+            $user->setPassword($hashedPassword);
+            $this->manager->persist($user);
+            $this->manager->flush();
+        } catch (\Exception $e) {
+    }
+
         $openApi = ($this->decorated)($context);
         $schemas = $openApi->getComponents()->getSchemas();
 
@@ -31,7 +51,7 @@ final class JwtDecorator implements OpenApiFactoryInterface
             'properties' => [
                 'email' => [
                     'type' => 'string',
-                    'example' => 'ola',
+                    'example' => 'email@wp.pl',
                 ],
                 'password' => [
                     'type' => 'string',

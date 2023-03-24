@@ -24,7 +24,7 @@ use ApiPlatform\Metadata\Put;
 #[Get]
 #[Put(security: "is_granted('ROLE_ADMIN') or object.user == user")]
 #[GetCollection]
-#[Post(security: "is_granted('ROLE_ADMIN')")]
+#[Post(security: "is_granted('ROLE_ADMIN')", securityMessage: 'Only admins can add books.')]
 #[Patch(security: "is_granted('ROLE_ADMIN')")]
 #[Delete(security: "is_granted('ROLE_ADMIN')")]
 #[ApiFilter(BooleanFilter::class, properties: ['availability'])]
@@ -100,6 +100,11 @@ class Book
     public function setUser(?User $user): self
     {
         $this->user = $user;
+        if($user == null) {
+            $this->setAvailability(true);
+        } else {
+            $this->setAvailability(false);
+        }
 
         return $this;
     }
